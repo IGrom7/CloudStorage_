@@ -1,9 +1,6 @@
 package ru.grom.cloudstorage.lesson1;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
@@ -24,8 +21,9 @@ public class ClientHandler implements Runnable {
             while (true) {
                 String command = in.readUTF();
                 if ("upload".equals(command)) {
+                    String fileName = in.readUTF();
                     try {
-                        File file = new File("server"  + File.separator + in.readUTF());
+                        File file = new File("server"  + File.separator + fileName);
                         if (!file.exists()) {
                             file.createNewFile();
                         }
@@ -40,31 +38,37 @@ public class ClientHandler implements Runnable {
                             fos.write(buffer, 0, read);
                         }
                         fos.close();
-                        out.writeUTF("OK");
+                        out.writeUTF("file "  + fileName + " uploaded");
                     } catch (Exception e) {
-                        out.writeUTF("FATAL ERROR");
+                        out.writeUTF("!file " + fileName +" not uploaded!");
                     }
                 }
-                try {
-                    if ("download".equals(command)) {
-                        // TODO: 14.06.2021
-                        File file = new File("server" + File.separator + in.readUTF());
+                if ("download".equals(command)) {
+                    String fileName = in.readUTF();
+                    try {
+                        File file = new File("server" + File.separator + fileName);
                         if (!file.exists()) {
-                            file.createNewFile();
+                            throw new FileNotFoundException();
                         }
-                        FileOutputStream fos = new FileOutputStream(file);
-                        long size = in.readLong();
+                        long fileLength = file.length();
+                        out.writeLong(fileLength);
+
+                        FileInputStream fis = new FileInputStream(file);
+
+
+                        int read = 0;
                         byte[] buffer = new byte[8 * 1024];
-                        for (int i = 0; i < (size + (buffer.length - 1)) / (buffer.length); i++) {
-                            int read = in.read(buffer);
-                            fos.write(buffer, 0, read);
+                        while ((read = fis.read(buffer)) > 0) {
+                            out.write(buffer, 0, read);
                         }
-                        fos.close();
-                        out.writeUTF("OK");
+                        out.flush();
+                        out.writeUTF("file " + fileName + " downloaded");
+
+                    } catch (FileNotFoundException e) {
+                        out.writeUTF("!file " + fileName + " not found!");
+                    } catch (Exception e) {
+                        out.writeUTF("!file " + fileName + " not downloaded!");
                     }
-                }
-                catch (Exception e) {
-                    out.writeUTF("FATAL ERROR");
                 }
                 if ("exit".equals(command)) {
                     System.out.printf("Client %s disconnected correctly\n", socket.getInetAddress());
@@ -72,7 +76,6 @@ public class ClientHandler implements Runnable {
                 }
 
                 System.out.println(command);
-                out.writeUTF(command);
             }
         } catch (Exception e) {
             e.printStackTrace();
