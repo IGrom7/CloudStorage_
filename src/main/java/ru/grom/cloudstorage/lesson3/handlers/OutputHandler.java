@@ -1,4 +1,4 @@
-package ru.grom.cloudstorage.lesson3;
+package ru.grom.cloudstorage.lesson3.handlers;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

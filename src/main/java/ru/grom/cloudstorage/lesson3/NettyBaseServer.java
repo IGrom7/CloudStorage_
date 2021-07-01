@@ -7,8 +7,9 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import ru.grom.cloudstorage.lesson3.handlers.ByteBufInputHandler;
+import ru.grom.cloudstorage.lesson3.handlers.OutputHandler;
+import ru.grom.cloudstorage.lesson3.handlers.StringInputHandler;
 
 public class NettyBaseServer {
     public NettyBaseServer() {
@@ -24,9 +25,9 @@ public class NettyBaseServer {
                         @Override
                         protected void initChannel(Channel channel) throws Exception {
                             channel.pipeline().addLast(
-                                    new StringDecoder(), // in - 1
-                                    new StringEncoder(), // out - 1
-                                    new ChatMessageHandler() // in - 2
+                                    new ByteBufInputHandler(), // in - 1
+                                    new OutputHandler(), // out - 1
+                                    new StringInputHandler() // in - 2
                             );
                         }
                     });
